@@ -4,6 +4,7 @@
 /data
 package-lock.json
 *.zip
+.env
 
 # Logs
 logs
