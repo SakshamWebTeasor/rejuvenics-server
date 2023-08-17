@@ -9,7 +9,7 @@ export class AuthService {
     }
     async login(user: any): Promise<AuthDto> {
 
-        if (user.message == "email not found") {
+        if (user.message) {
             return user
         }
 

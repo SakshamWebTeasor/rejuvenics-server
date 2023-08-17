@@ -13,8 +13,14 @@ export class PassportLocalStrategy extends PassportStrategy(Strategy) {
     }
     async validate(email: string, password: string): Promise<UserDto | errRes> {
         const user = await this.userService.getUserByEmail(email);
+        if(!user) {
+            return {
+                message: "user doesn't exist",
+                status: 400
+            };
+        }
         const passwordValid = await bcrypt.compare(password, user.password)
-        if (!passwordValid || !user) {
+        if (!passwordValid) {
             return {
                 message: "user credentials not matched",
                 status: 400
