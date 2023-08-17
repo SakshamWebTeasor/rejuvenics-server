@@ -4,6 +4,12 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthLoginDto } from './auth-login.dto';
 import { AuthDto } from './auth.dto';
 import { AuthService } from './auth.service';
+
+export interface errRes {
+  message: string,
+  status: number
+}
+
 @ApiTags('Auth Module')
 @Controller()
 export class AuthController {

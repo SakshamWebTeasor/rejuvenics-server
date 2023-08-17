@@ -15,6 +15,12 @@ export class Product {
     sku:string;
 
     @Prop({default:null})
+    p_image_link:string;
+
+    @Prop({default:null})
+    p_image:string;
+
+    @Prop({default:null})
     price:number;
 
     @Prop({default:null})

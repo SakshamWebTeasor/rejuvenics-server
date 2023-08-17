@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards ,UseInterceptors , UploadedFile  } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards ,UseInterceptors , UploadedFile, Request } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -17,14 +17,20 @@ export class ProductController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  async create(@Body() createProductDto: CreateProductDto, @Request() req: any) {
+    return this.productService.create(createProductDto,req.user);
   }
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
   @ApiQuery({ type: FilterDto })
   async findAll(@Query() filter: any) {
+    return this.productService.findAll(filter);
+  }
+
+  @Get('/universal')
+  @ApiQuery({ type: FilterDto })
+  async findUniversalAll(@Query() filter: any) {
     return this.productService.findAll(filter);
   }
 

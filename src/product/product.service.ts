@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException, Injectable  } from '@nestjs/common';
+import { BadRequestException, NotFoundException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,7 +11,7 @@ import { firebaseConfig } from '../firebase.config';
 @Injectable()
 export class ProductService {
   // //private bucket = admin.storage().bucket();
-  
+
   // constructor(@InjectModel(Product.name) private productModel: Model<ProductDocument>) {
   //   // admin.initializeApp({
   //   //   credential: admin.credential.cert(firebaseConfig),
@@ -31,9 +31,16 @@ export class ProductService {
     this.bucket = admin.storage().bucket();
   }
 
-  async create(createProductDto: CreateProductDto){ 
+  async create(createProductDto: CreateProductDto, user: any) {
     try {
-      let savedData = await this.productModel.create(createProductDto)
+      if (!user.isAdmin) {
+        return {
+          message: "You're not authorized to implement this operation",
+          success: false,
+          status: 401
+        };
+      }
+      let savedData = await this.productModel.create({ ...createProductDto, createdby: user.user_id })
       return {
         message: "Product created Successfully",
         success: true,
@@ -56,21 +63,21 @@ export class ProductService {
 
   async findAll(data: FilterDto): Promise<any | null> {
     try {
-      const { page = 1, pageSize = 5 , search } = data
+      const { page = 1, pageSize = 5, search } = data
       if (search) {
         var re = new RegExp('^' + search + '', "i");
         const productCount = await this.productModel.find({
-        "$or": [
+          "$or": [
             { title: re },
             { sku: re }
-        ]
-    }).count();
+          ]
+        }).count();
         const product = await this.productModel.find({
-        "$or": [
+          "$or": [
             { title: re },
             { sku: re }
-        ]
-    }).limit(pageSize).skip((page - 1) * pageSize);
+          ]
+        }).limit(pageSize).skip((page - 1) * pageSize);
         let productData = {
           success: true,
           data: product,
@@ -99,7 +106,7 @@ export class ProductService {
     }
   }
 
- async findOne(id: string) {
+  async findOne(id: string) {
     return this.productModel.findById(id);
   }
 
@@ -121,31 +128,31 @@ export class ProductService {
       return this.productModel.deleteOne({ _id: id }).exec();
     } catch (error) {
       return error
-    } 
-   }
+    }
+  }
   //  async uploadFile(file): Promise<string> {
   //   console.log(file);
   //   return file.path;
   // }
- 
-    async uploadFile(fileBuffer: Buffer, filename: string): Promise<string> {
-      try{
-        const file = this.bucket.file(filename);
-        console.log("file",filename);
-        
-        await file.save(fileBuffer, {
-          metadata: {
-            contentType: 'image/jpg',
-          },
-        });
-        const [metadata] = await file.getMetadata();
-        return metadata.mediaLink;
-      } catch (error) {
-        console.log("chk", error);
-        
-        return error
-      } 
-     
+
+  async uploadFile(fileBuffer: Buffer, filename: string): Promise<string> {
+    try {
+      const file = this.bucket.file(filename);
+      console.log("file", filename);
+
+      await file.save(fileBuffer, {
+        metadata: {
+          contentType: 'image/jpg',
+        },
+      });
+      const [metadata] = await file.getMetadata();
+      return metadata.mediaLink;
+    } catch (error) {
+      console.log("chk", error);
+
+      return error
     }
-  
+
+  }
+
 }

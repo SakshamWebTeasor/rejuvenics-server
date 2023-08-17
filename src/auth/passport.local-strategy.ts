@@ -5,22 +5,21 @@ import { Strategy } from "passport-local";
 import { UserService } from "src/user/user.service";
 import * as bcrypt from 'bcrypt';
 import { UserDto } from "src/user/user.dto";
-
+import { errRes } from "./auth.controller";
 @Injectable()
 export class PassportLocalStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly userService: UserService) {
-        super({ usernameField: 'email'});
+        super({ usernameField: 'email' });
     }
-
-    async validate(email: string, password: string): Promise<UserDto | null> {
+    async validate(email: string, password: string): Promise<UserDto | errRes> {
         const user = await this.userService.getUserByEmail(email);
-        
-       /// if (user == undefined || user.isAdmin === false ) {
-        if (user == undefined ) {
-            throw new UnauthorizedException();
-        }
-
         const passwordValid = await bcrypt.compare(password, user.password)
+        if (!passwordValid || !user) {
+            return {
+                message: "user credentials not matched",
+                status: 400
+            };
+        }
         if (user && passwordValid) {
             return user;
         }
